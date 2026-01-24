@@ -11,6 +11,8 @@ import {
   History,
   Image as ImageIcon,
   Info,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 const MAX_SIZE_MB = 8;
@@ -23,7 +25,7 @@ function formatBytes(bytes) {
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${sizes[i]}`;
 }
 
-function downloadJSON(data, filename = "rapport.json") {
+function downloadJSON(data, filename = "report.json") {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -101,11 +103,11 @@ export default function MedicalClassifierPro() {
   };
 
   const validateFile = (file) => {
-    if (!file) return "Aucun fichier sélectionné.";
+    if (!file) return "No file selected.";
     if (!ALLOWED_TYPES.includes(file.type))
-      return `Format non supporté (${file.type || "inconnu"}). Formats: PNG, JPG, JPEG, WEBP.`;
+      return `Unsupported format (${file.type || "unknown"}). Supported: PNG, JPG, JPEG, WEBP.`;
     const sizeMB = file.size / (1024 * 1024);
-    if (sizeMB > MAX_SIZE_MB) return `Fichier trop lourd (${sizeMB.toFixed(1)} MB). Max: ${MAX_SIZE_MB} MB.`;
+    if (sizeMB > MAX_SIZE_MB) return `File too large (${sizeMB.toFixed(1)} MB). Max: ${MAX_SIZE_MB} MB.`;
     return "";
   };
 
@@ -145,7 +147,7 @@ export default function MedicalClassifierPro() {
         height: dims.height,
       });
 
-      setToast({ type: "success", msg: "Image chargée ✅" });
+      setToast({ type: "success", msg: "Image uploaded ✅" });
     };
     reader.readAsDataURL(file);
   };
@@ -159,7 +161,7 @@ export default function MedicalClassifierPro() {
     setError("");
     setAnalyzing(false);
     setProgress(0);
-    setToast({ type: "info", msg: "Réinitialisé." });
+    setToast({ type: "info", msg: "Reset complete." });
   };
 
   const mockPredict = () => {
@@ -201,11 +203,10 @@ export default function MedicalClassifierPro() {
     setProgress(0);
     abortRef.current.canceled = false;
 
-    // Progress “réaliste”
+    // “Realistic” progress
     const start = Date.now();
     const interval = setInterval(() => {
       setProgress((p) => {
-        // monte vite au début, puis ralentit
         const elapsed = (Date.now() - start) / 1000;
         const target = 100 * (1 - Math.exp(-elapsed / 1.6));
         return clamp(Math.max(p, target), 0, 92);
@@ -213,7 +214,7 @@ export default function MedicalClassifierPro() {
     }, 120);
 
     try {
-      // ✅ MOCK (remplace par ton API si tu veux)
+      // ✅ MOCK (replace with your API if you want)
       await new Promise((r) => setTimeout(r, 2000));
       if (abortRef.current.canceled) return;
 
@@ -231,24 +232,24 @@ export default function MedicalClassifierPro() {
         result: data,
       };
       setHistory((h) => [entry, ...h].slice(0, 8));
-      setToast({ type: "success", msg: "Analyse terminée ✅" });
+      setToast({ type: "success", msg: "Analysis completed ✅" });
 
-      /* ✅ POUR CONNECTER À TA VRAIE API :
+      /* ✅ TO CONNECT TO YOUR REAL API:
       const formData = new FormData();
       formData.append("file", image);
       const response = await fetch("http://localhost:8000/predict", {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) throw new Error("Erreur API");
+      if (!response.ok) throw new Error("API error");
       const data = await response.json();
-      ... puis même logique que ci-dessus
+      ... then keep the same logic as above
       */
     } catch (e) {
       clearInterval(interval);
       setAnalyzing(false);
       setProgress(0);
-      const msg = "Erreur pendant l’analyse. Réessaie.";
+      const msg = "Error during analysis. Please try again.";
       setError(msg);
       setToast({ type: "error", msg });
     }
@@ -261,7 +262,7 @@ export default function MedicalClassifierPro() {
 
   const loadFromHistory = (item) => {
     setResult(item.result);
-    setToast({ type: "info", msg: "Résultat restauré depuis l’historique." });
+    setToast({ type: "info", msg: "Result restored from history." });
   };
 
   const baseBg =
@@ -272,9 +273,7 @@ export default function MedicalClassifierPro() {
 
   const card =
     "rounded-3xl shadow-xl border backdrop-blur " +
-    (dark
-      ? "bg-white/5 border-white/10"
-      : "bg-white/70 border-black/5");
+    (dark ? "bg-white/5 border-white/10" : "bg-white/70 border-black/5");
 
   return (
     <div className={baseBg}>
@@ -286,8 +285,38 @@ export default function MedicalClassifierPro() {
               Medical Vision Lab
             </h1>
             <p className={dark ? "text-slate-300 mt-2" : "text-slate-600 mt-2"}>
-              Classification d’images (Pneumonie / Tuberculose).
+              AI-powered image classification (Pneumonia / Tuberculosis) — fast, clean, and demo-ready.
             </p>
+
+            {/* Added: trust & value props */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span
+                className={
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-extrabold " +
+                  (dark ? "bg-white/5 border-white/10 text-slate-100" : "bg-white/70 border-black/10 text-slate-800")
+                }
+              >
+                <Sparkles className="w-4 h-4" />
+                Smooth UX • Instant insights
+              </span>
+              <span
+                className={
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-extrabold " +
+                  (dark ? "bg-white/5 border-white/10 text-slate-100" : "bg-white/70 border-black/10 text-slate-800")
+                }
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Privacy-first • Local demo mode
+              </span>
+              <span
+                className={
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-extrabold " +
+                  (dark ? "bg-white/5 border-white/10 text-slate-100" : "bg-white/70 border-black/10 text-slate-800")
+                }
+              >
+                Supported: PNG / JPG / WEBP (≤ {MAX_SIZE_MB}MB)
+              </span>
+            </div>
           </div>
 
           <button
@@ -301,7 +330,7 @@ export default function MedicalClassifierPro() {
             aria-label="Toggle theme"
           >
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span className="text-sm font-semibold">{dark ? "Clair" : "Sombre"}</span>
+            <span className="text-sm font-semibold">{dark ? "Light" : "Dark"}</span>
           </button>
         </div>
 
@@ -368,10 +397,10 @@ export default function MedicalClassifierPro() {
                     </div>
 
                     <p className="text-xl font-bold">
-                      Glisse une image ici, ou clique pour uploader
+                      Drag & drop an image here, or click to upload
                     </p>
                     <p className={dark ? "text-slate-300 mt-2" : "text-slate-600 mt-2"}>
-                      PNG / JPG / WEBP — max {MAX_SIZE_MB}MB
+                      PNG / JPG / WEBP — up to {MAX_SIZE_MB}MB
                     </p>
 
                     {error && (
@@ -394,12 +423,12 @@ export default function MedicalClassifierPro() {
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-2">
                       <ImageIcon className={dark ? "w-5 h-5 text-indigo-200" : "w-5 h-5 text-indigo-700"} />
-                      <h2 className="text-2xl font-extrabold">Analyse</h2>
+                      <h2 className="text-2xl font-extrabold">Analysis</h2>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => downloadJSON({ meta: fileMeta, result }, "rapport_analyse.json")}
+                        onClick={() => downloadJSON({ meta: fileMeta, result }, "analysis_report.json")}
                         disabled={!result}
                         className={
                           "inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition disabled:opacity-50 disabled:cursor-not-allowed " +
@@ -409,7 +438,7 @@ export default function MedicalClassifierPro() {
                         }
                       >
                         <FileDown className="w-4 h-4" />
-                        <span className="text-sm font-semibold">Rapport</span>
+                        <span className="text-sm font-semibold">Download report</span>
                       </button>
 
                       <button
@@ -422,7 +451,7 @@ export default function MedicalClassifierPro() {
                         }
                       >
                         <X className="w-4 h-4" />
-                        <span className="text-sm font-semibold">Nouvelle</span>
+                        <span className="text-sm font-semibold">New image</span>
                       </button>
                     </div>
                   </div>
@@ -446,7 +475,9 @@ export default function MedicalClassifierPro() {
                         <div
                           className={
                             "px-3 py-2 rounded-xl border text-sm font-bold " +
-                            (dark ? "bg-indigo-500/10 border-indigo-400/20 text-indigo-200" : "bg-indigo-50 border-indigo-200 text-indigo-800")
+                            (dark
+                              ? "bg-indigo-500/10 border-indigo-400/20 text-indigo-200"
+                              : "bg-indigo-50 border-indigo-200 text-indigo-800")
                           }
                         >
                           Top: {topPrediction.class} ({topPrediction.confidence.toFixed(1)}%)
@@ -469,7 +500,7 @@ export default function MedicalClassifierPro() {
                     {/* Results */}
                     <div>
                       <p className={dark ? "text-slate-300 text-sm mb-2" : "text-slate-600 text-sm mb-2"}>
-                        Résultats
+                        Results
                       </p>
 
                       {!result && !analyzing && (
@@ -482,7 +513,7 @@ export default function MedicalClassifierPro() {
                               : "bg-indigo-600 hover:bg-indigo-700 text-white")
                           }
                         >
-                          Lancer l’analyse
+                          Start analysis
                         </button>
                       )}
 
@@ -491,9 +522,9 @@ export default function MedicalClassifierPro() {
                           <div className="flex items-center gap-3">
                             <Loader2 className={dark ? "w-6 h-6 animate-spin text-indigo-200" : "w-6 h-6 animate-spin text-indigo-700"} />
                             <div className="flex-1">
-                              <p className="font-bold">Analyse en cours…</p>
+                              <p className="font-bold">Analyzing…</p>
                               <p className={dark ? "text-slate-300 text-sm" : "text-slate-600 text-sm"}>
-                                Optimisation + extraction de features + prédiction
+                                Optimization + feature extraction + prediction
                               </p>
                             </div>
                             <span className="text-sm font-extrabold">{Math.round(progress)}%</span>
@@ -517,13 +548,13 @@ export default function MedicalClassifierPro() {
                               ) : (
                                 <AlertCircle className="w-5 h-5" />
                               )}
-                              <span className="font-extrabold">Diagnostic</span>
+                              <span className="font-extrabold">AI assessment</span>
                             </div>
                             <p className="text-3xl font-black">{result.diagnosis}</p>
                           </div>
 
                           <div className={"rounded-2xl p-4 border " + (dark ? "bg-white/5 border-white/10" : "bg-white/60 border-black/5")}>
-                            <p className="font-extrabold mb-3">Confiance</p>
+                            <p className="font-extrabold mb-3">Confidence</p>
 
                             <div className="space-y-3">
                               {result.predictions.map((pred, idx) => (
@@ -547,7 +578,7 @@ export default function MedicalClassifierPro() {
 
                           <div className={"rounded-2xl p-3 border " + (dark ? "bg-yellow-500/10 border-yellow-500/20" : "bg-yellow-50 border-yellow-200")}>
                             <p className={dark ? "text-yellow-200 text-xs" : "text-yellow-800 text-xs"}>
-                              <strong>Note :</strong> Résultat IA indicatif — ne remplace pas un diagnostic médical.
+                              <strong>Disclaimer:</strong> This AI result is informational only and does not replace a medical diagnosis.
                             </p>
                           </div>
                         </div>
@@ -578,12 +609,12 @@ export default function MedicalClassifierPro() {
             <div className="p-6 md:p-7">
               <div className="flex items-center gap-2 mb-4">
                 <History className={dark ? "w-5 h-5 text-indigo-200" : "w-5 h-5 text-indigo-700"} />
-                <h3 className="text-xl font-extrabold">Historique</h3>
+                <h3 className="text-xl font-extrabold">History</h3>
               </div>
 
               {history.length === 0 ? (
                 <div className={dark ? "text-slate-300 text-sm" : "text-slate-600 text-sm"}>
-                  Aucune analyse encore. Lance une analyse pour remplir l’historique.
+                  No analyses yet. Run an analysis to populate your history.
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -626,24 +657,31 @@ export default function MedicalClassifierPro() {
                 <div className="flex items-start gap-3">
                   <Info className={dark ? "w-5 h-5 text-slate-200 mt-0.5" : "w-5 h-5 text-slate-700 mt-0.5"} />
                   <div>
-                    <p className="font-extrabold">Astuce</p>
+                    <p className="font-extrabold">Tip</p>
                     <p className={dark ? "text-slate-300 text-sm" : "text-slate-600 text-sm"}>
-                      Tu peux connecter ton backend FastAPI/Node en remplaçant le mock dans <code className="font-bold">analyzeImage()</code>.
+                      Connect your FastAPI/Node backend by replacing the mock logic inside{" "}
+                      <code className="font-bold">analyzeImage()</code>.
                     </p>
                   </div>
                 </div>
               </div>
 
+              {/* Added: quick reassurance */}
+              <div className={"mt-3 rounded-2xl p-4 border " + (dark ? "bg-white/5 border-white/10" : "bg-white/60 border-black/5")}>
+                <p className={dark ? "text-slate-300 text-sm" : "text-slate-600 text-sm"}>
+                  <span className="font-extrabold">Client-ready:</span> clean UI, exportable report, and a smooth analysis flow for demos.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-         <div className={dark ? "mt-6 text-center text-xs text-slate-400" : "mt-6 text-center text-xs text-slate-600"}>
-            <p>Medical Vision Lab — Interface demo. IA indicative uniquement.</p>
-            <p className="mt-1">
-              Réalisé par <span className="font-bold">Ibrahim Al Ayoubi</span>
-            </p>
+        <div className={dark ? "mt-6 text-center text-xs text-slate-400" : "mt-6 text-center text-xs text-slate-600"}>
+          <p>Medical Vision Lab — Demo interface. AI results are indicative only.</p>
+          <p className="mt-1">
+            Project done by <span className="font-bold">Ibrahim Al Ayoubi</span>
+          </p>
         </div>
       </div>
     </div>
